@@ -1,6 +1,6 @@
 ﻿namespace MartianRobots
 {
-    public enum MoveResult
+    public enum RobotFeedback
     {
         Lost,
         Safe,

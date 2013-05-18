@@ -50,12 +50,14 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="Instructions\ForwardInstructionTests.cs" />
     <Compile Include="Instructions\RightInstructionTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="FileTests.cs" />
     <Compile Include="RobotTests.cs" />
     <Compile Include="ProgramTests.cs" />
     <Compile Include="Instructions\LeftInstructionTests.cs" />
+    <Compile Include="PositionTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MartianRobots\MartianRobots.csproj">

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MartianRobots.Instructions;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 
@@ -43,23 +44,28 @@ namespace MartianRobots
         /// </summary>
         public bool Lost { get; private set; }
 
-        public void Traverse(Mars mars)
+        /// <summary>
+        /// Signals the <see cref="Robot"/> to start moving.
+        /// </summary>
+        /// <param name="grid">The <see cref="IGrid"/> to traverse.</param>
+        public void Traverse(IGrid grid)
         {
-            Contract.Requires(mars != null);
+            Contract.Requires(grid != null);
+            Contract.Ensures(this.FinishPosition != null);
 
             foreach (var instruction in this.instructions)
             {
-                var newPosition = instruction.Act(this.currentPosition);
+                var newPosition = instruction.TransformPosition(this.currentPosition);
 
-                var moveResult = mars.Move(this.currentPosition, newPosition);
+                var moveResult = grid.Move(this.currentPosition, newPosition);
 
-                if (moveResult == MoveResult.Lost)
+                if (moveResult == RobotFeedback.Lost)
                 {
                     this.FinishPosition = this.currentPosition;
                     this.Lost = true;
                     return;
                 }
-                else if (moveResult == MoveResult.Safe)
+                else if (moveResult == RobotFeedback.Safe)
                 {
                     this.currentPosition = newPosition;
                 }

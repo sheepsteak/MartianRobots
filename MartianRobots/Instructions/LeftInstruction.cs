@@ -1,21 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.Contracts;
-using System.Linq;
-using System.Text;
+﻿using System.Diagnostics.Contracts;
 
 namespace MartianRobots.Instructions
 {
-    public class LeftInstruction : IInstruction
+    /// <summary>
+    /// Represents an <see cref="Instruction"/> that rotates a robot to the left.
+    /// </summary>
+    public class LeftInstruction : Instruction
     {
         private static char command = 'L';
 
-        public char Command
+        /// <summary>
+        /// Gets the command that links to this <see cref="Instruction"/>.
+        /// </summary>
+        public override char Command
         {
             get { return command; }
         }
 
-        public Position Act(Position position)
+        /// <summary>
+        /// Takes a position and applies the <see cref="LeftInstruction"/> to it.
+        /// </summary>
+        /// <param name="position">A position to transform.</param>
+        /// <returns>The result of applying the <see cref="LeftInstruction"/>.</returns>
+        public override Position TransformPosition(Position position)
         {
             Contract.Requires(position != null);
             Contract.Ensures(Contract.Result<Position>() != null);

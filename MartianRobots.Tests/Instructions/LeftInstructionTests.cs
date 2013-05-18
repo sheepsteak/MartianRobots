@@ -32,7 +32,7 @@ namespace MartianRobots.Tests.Instructions
         {
             var leftInstruction = new LeftInstruction();
 
-            var newPosition = leftInstruction.Act(this.validPosition);
+            var newPosition = leftInstruction.TransformPosition(this.validPosition);
 
             Assert.AreEqual(0, newPosition.X);
             Assert.AreEqual(0, newPosition.Y);
@@ -55,7 +55,7 @@ namespace MartianRobots.Tests.Instructions
         {
             var leftInstruction = new LeftInstruction();
 
-            var newPosition = leftInstruction.Act(this.validPosition);
+            var newPosition = leftInstruction.TransformPosition(this.validPosition);
 
             Assert.AreEqual(Orientation.W, newPosition.Orientation);
         }
@@ -77,7 +77,7 @@ namespace MartianRobots.Tests.Instructions
         {
             var leftInstruction = new LeftInstruction();
 
-            var newPosition = leftInstruction.Act(this.validPosition);
+            var newPosition = leftInstruction.TransformPosition(this.validPosition);
 
             Assert.AreEqual(Orientation.N, newPosition.Orientation);
         }
@@ -99,7 +99,7 @@ namespace MartianRobots.Tests.Instructions
         {
             var leftInstruction = new LeftInstruction();
 
-            var newPosition = leftInstruction.Act(this.validPosition);
+            var newPosition = leftInstruction.TransformPosition(this.validPosition);
 
             Assert.AreEqual(Orientation.E, newPosition.Orientation);
         }
@@ -121,7 +121,7 @@ namespace MartianRobots.Tests.Instructions
         {
             var leftInstruction = new LeftInstruction();
 
-            var newPosition = leftInstruction.Act(this.validPosition);
+            var newPosition = leftInstruction.TransformPosition(this.validPosition);
 
             Assert.AreEqual(Orientation.S, newPosition.Orientation);
         }
