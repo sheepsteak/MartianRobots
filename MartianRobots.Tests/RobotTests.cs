@@ -4,12 +4,11 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace MartianRobots.Tests
 {
     [TestClass]
-    public class GridTests
+    public class RobotTests
     {
         [TestMethod]
-        public void GridSizeShouldBePositive()
+        public void TestMethod1()
         {
-        
         }
     }
 }
