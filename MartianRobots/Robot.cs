@@ -8,7 +8,7 @@ namespace MartianRobots
     /// <summary>
     /// Represents a single robot on the surface of Mars.
     /// </summary>
-    public class Robot
+    public class Robot : IRobot
     {
         private Position currentPosition;
         private IEnumerable<Instruction> instructions;
@@ -31,6 +31,7 @@ namespace MartianRobots
             }
 
             this.instructions = instructions;
+            this.StartPosition = startPosition;
             this.currentPosition = startPosition;
         }
 
@@ -44,6 +45,11 @@ namespace MartianRobots
         /// </summary>
         public bool Lost { get; private set; }
 
+        /// <summary>
+        /// Gets where the robot started from.
+        /// </summary>
+        public Position StartPosition { get; private set; }
+        
         /// <summary>
         /// Signals the <see cref="Robot"/> to start moving.
         /// </summary>

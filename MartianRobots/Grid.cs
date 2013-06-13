@@ -1,4 +1,6 @@
-﻿using System.Diagnostics.Contracts;
+﻿using System;
+using System.Diagnostics.Contracts;
+using System.Text.RegularExpressions;
 
 namespace MartianRobots
 {
@@ -8,21 +10,6 @@ namespace MartianRobots
     public class Grid : IGrid
     {
         private bool[,] grid;
-
-        /// <summary>
-        /// Creates a new <see cref="Grid"/>.
-        /// </summary>
-        /// <param name="sizeX"></param>
-        /// <param name="sizeY"></param>
-        public Grid(int sizeX, int sizeY)
-        {
-            Contract.Requires(sizeX > 0 && sizeX <= 50);
-            Contract.Requires(sizeY > 0 && sizeY <= 50);
-
-            this.SizeX = sizeX;
-            this.SizeY = sizeY;
-            this.grid = new bool[sizeX, sizeY];
-        }
 
         /// <summary>
         /// Gets the size of the x-dimension.
@@ -52,7 +39,37 @@ namespace MartianRobots
         {
             get { return this.grid[indexX, indexY]; }
         }
-        
+
+        public void Initialize(string line)
+        {
+            Contract.Requires(line != null);
+
+            Contract.Requires(!string.IsNullOrWhiteSpace(line));
+
+            var splits = Regex.Split(line, @"\D+");
+
+            if (splits.Length != 2)
+            {
+                throw new ArgumentException("Line must be formatted like: '5 5'");
+            }
+
+            int x;
+            if (!int.TryParse(splits[0], out x))
+            {
+                throw new ArgumentException("Cannot parse X value.");
+            }
+
+            int y;
+            if (!int.TryParse(splits[1], out y))
+            {
+                throw new ArgumentException("Cannot parse Y value.");
+            }
+
+            this.SizeX = x;
+            this.SizeY = y;
+            this.grid = new bool[x + 1, y + 1];
+        }
+
         /// <summary>
         /// Attempts to move the <see cref="Robot"/> over the surface of <see cref="Grid"/>.
         /// </summary>
@@ -71,13 +88,13 @@ namespace MartianRobots
             }
             else
             {
-                if (this.grid[currentPosition.X - 1, currentPosition.Y - 1])
+                if (this.grid[currentPosition.X, currentPosition.Y])
                 {
                     return RobotFeedback.Scented;
                 }
                 else
                 {
-                    this.grid[currentPosition.X - 1, currentPosition.Y - 1] = true;
+                    this.grid[currentPosition.X, currentPosition.Y] = true;
                     return RobotFeedback.Lost;
                 }
             }

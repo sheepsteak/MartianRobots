@@ -15,7 +15,8 @@ namespace MartianRobots.Tests
         [TestInitialize]
         public void Setup()
         {
-            this.grid = new Grid(10, 10);
+            this.grid = new Grid();
+            this.grid.Initialize("10 10");
 
             this.validInstructions = new List<Instruction>()
             {

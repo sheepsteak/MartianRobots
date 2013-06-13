@@ -1,11 +1,11 @@
-﻿using MartianRobots.Instructions;
+﻿using Autofac;
+using MartianRobots.Instructions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text.RegularExpressions;
 
 namespace MartianRobots
 {
@@ -19,13 +19,15 @@ namespace MartianRobots
                 return;
             }
 
-            if (!File.Exists(args[0]))
+            var filename = args[0];
+
+            if (!File.Exists(filename))
             {
                 Console.WriteLine("Please provide a valid input file.");
                 return;
             }
 
-            var inputLines = File.ReadAllLines(args[0]).ToList();
+            var inputLines = File.ReadAllLines(filename).ToList();
 
             if (inputLines.Count() == 0)
             {
@@ -33,49 +35,41 @@ namespace MartianRobots
                 return;
             }
 
-            var grid = GetGrid(inputLines.First());
-            var instructions = GetInstructions();
+            var container = ConfigureContainer();
 
-            var mars = new Mars(inputLines, grid, instructions);
-            var resultLines = mars.Run();
-
-            foreach (var resultLine in resultLines)
+            var mars = container.Resolve<Mars>();
+            IEnumerable<string> resultLines = null;
+            try
             {
-                Console.WriteLine(resultLine);
+                resultLines = mars.Run(inputLines);
+            }
+            catch (ArgumentException e)
+            {
+                Console.WriteLine(e.Message);
+            }
+
+            if (resultLines != null)
+            {
+                foreach (var resultLine in resultLines)
+                {
+                    Console.WriteLine(resultLine);
+                }
             }
         }
 
-        public static IGrid GetGrid(string line)
+        public static IContainer ConfigureContainer()
         {
-            Contract.Requires(!string.IsNullOrWhiteSpace(line));
-            Contract.Ensures(Contract.Result<IGrid>() != null);
+            Contract.Ensures(Contract.Result<IContainer>() != null);
 
-            var splits = Regex.Split(line, @"\D+");
+            var container = new ContainerBuilder();
+            container.RegisterType<Mars>();
+            container.RegisterType<Grid>().As<IGrid>();
+            container.RegisterType<RobotFactory>().As<IRobotFactory>();
+            container.RegisterAssemblyTypes(Assembly.GetExecutingAssembly())
+                .Where(t => t.Name.EndsWith("Instruction"))
+                .As<Instruction>();
 
-            int x;
-            if (!int.TryParse(splits[0], out x))
-            {
-                throw new ArgumentException("Cannot parse X value.");
-            }
-
-            int y;
-            if (!int.TryParse(splits[1], out y))
-            {
-                throw new ArgumentException("Cannot parse Y value.");
-            }
-
-            return new Grid(x, y);
-        }
-
-        private static IEnumerable<Instruction> GetInstructions()
-        {
-            Contract.Ensures(Contract.Result<IEnumerable<Instruction>>() != null);
-
-            return Assembly.GetExecutingAssembly()
-                .GetTypes()
-                .Where(t => t.IsSubclassOf(typeof(Instruction)))
-                .Select(t => Activator.CreateInstance(t))
-                .Cast<Instruction>();
+            return container.Build();
         }
     }
 }

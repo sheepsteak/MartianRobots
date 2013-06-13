@@ -1,84 +1,40 @@
-﻿using MartianRobots.Instructions;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace MartianRobots
 {
     public class Mars
     {
         private IGrid grid;
-        private IEnumerable<string> inputLines;
-        private IEnumerable<Instruction> instructions;
+        private IRobotFactory robotFactory;
 
-        public Mars(IEnumerable<string> inputLines, IGrid grid, IEnumerable<Instruction> instructions)
+        public Mars(IGrid grid, IRobotFactory robotFactory)
         {
-            Contract.Requires(inputLines != null);
             Contract.Requires(grid != null);
-            Contract.Requires(instructions != null);
+            Contract.Requires(robotFactory != null);
 
-            this.inputLines = inputLines;
             this.grid = grid;
-            this.instructions = instructions;
+            this.robotFactory = robotFactory;
         }
 
-        public static IEnumerable<Robot> GetRobots(IEnumerable<string> lines, IEnumerable<Instruction> instructions)
+        public IEnumerable<string> Run(IEnumerable<string> inputLines)
         {
-            Contract.Requires(lines != null);
-            Contract.Ensures(Contract.Result<IEnumerable<Robot>>() != null);
+            Contract.Requires(inputLines != null && inputLines.Count() > 0);
 
-            var robots = new List<Robot>();
-            var linesEnumerator = lines.GetEnumerator();
+            this.grid.Initialize(inputLines.First());
 
-            while (linesEnumerator.MoveNext())
+            IEnumerable<IRobot> robots;
+            try
             {
-                if (string.IsNullOrWhiteSpace(linesEnumerator.Current))
-                {
-                    continue;
-                }
-
-                // First line - position
-                var splits = linesEnumerator.Current.Split(' ');
-
-                int x = int.Parse(splits[0]);
-                int y = int.Parse(splits[1]);
-                Orientation orientation;
-                Enum.TryParse<Orientation>(splits[2], false, out orientation);
-                var position = new Position(
-                    int.Parse(splits[0]),
-                    int.Parse(splits[1]),
-                    orientation);
-
-                // Move to second line
-                if (!linesEnumerator.MoveNext())
-                {
-                    throw new InvalidOperationException("Expecting a second line!");
-                }
-
-                //Second line
-                var robotInstructions = new List<Instruction>();
-                foreach (var character in linesEnumerator.Current.ToCharArray())
-                {
-                    var instruction = instructions
-                        .First(i => i.Command == char.ToUpperInvariant(character));
-
-                    robotInstructions.Add(instruction);
-                }
-
-                robots.Add(new Robot(robotInstructions, position));
+                robots = this.robotFactory.CreateRobots(inputLines.Skip(1));
             }
-
-            return robots;
-        }
-
-
-        public IEnumerable<string> Run()
-        {
-            var robots = GetRobots(inputLines.Skip(1), instructions);
+            catch (ArgumentException e)
+            {
+                throw new ArgumentException("There was an error parsing the input.", e);
+            }
+          
             var outputLines = new List<string>();
 
             foreach (var robot in robots)
@@ -91,7 +47,7 @@ namespace MartianRobots
 
                 if (robot.Lost)
                 {
-                    positionString +=" LOST";
+                    positionString += " LOST";
                 }
 
                 outputLines.Add(positionString);

@@ -9,5 +9,7 @@
         bool this[int indexX, int indexY] { get; }
 
         RobotFeedback Move(Position currentPosition, Position newPosition);
+
+        void Initialize(string line);
     }
 }
