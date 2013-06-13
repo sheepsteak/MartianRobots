@@ -6,12 +6,12 @@ using System.Text;
 namespace MartianRobots.Tests
 {
     [TestClass]
-    public class ProgramShouldGivenAValidFile
+    public class ProgramShould
     {
         private string filename;
 
         [TestInitialize]
-        public void Setup()
+        public void GivenAValidFile()
         {
             this.filename = "test.txt";
             var fileContents =

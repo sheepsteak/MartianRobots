@@ -1,86 +1,103 @@
-﻿using System.Diagnostics.Contracts;
+﻿using MartianRobots.Instructions;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.Contracts;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace MartianRobots
 {
-    /// <summary>
-    /// Represents a <see cref="IGrid"/> for a <see cref="Robot"/> to traverse.
-    /// </summary>
-    public class Mars : IGrid
+    public class Mars
     {
-        private bool[,] grid;
+        private IGrid grid;
+        private IEnumerable<string> inputLines;
+        private IEnumerable<Instruction> instructions;
 
-        /// <summary>
-        /// Creates a new <see cref="Mars"/>(!).
-        /// </summary>
-        /// <param name="sizeX"></param>
-        /// <param name="sizeY"></param>
-        public Mars(int sizeX, int sizeY)
+        public Mars(IEnumerable<string> inputLines, IGrid grid, IEnumerable<Instruction> instructions)
         {
-            Contract.Requires(sizeX > 0 && sizeX <= 50);
-            Contract.Requires(sizeY > 0 && sizeY <= 50);
+            Contract.Requires(inputLines != null);
+            Contract.Requires(grid != null);
+            Contract.Requires(instructions != null);
 
-            this.SizeX = sizeX;
-            this.SizeY = sizeY;
-            this.grid = new bool[sizeX, sizeY];
+            this.inputLines = inputLines;
+            this.grid = grid;
+            this.instructions = instructions;
         }
 
-        /// <summary>
-        /// Gets the size of the x-dimension.
-        /// </summary>
-        public int SizeX
+        public static IEnumerable<Robot> GetRobots(IEnumerable<string> lines, IEnumerable<Instruction> instructions)
         {
-            get;
-            private set;
-        }
+            Contract.Requires(lines != null);
+            Contract.Ensures(Contract.Result<IEnumerable<Robot>>() != null);
 
-        /// <summary>
-        /// Gets the size of the y-dimension.
-        /// </summary>
-        public int SizeY
-        {
-            get;
-            private set;
-        }
+            var robots = new List<Robot>();
+            var linesEnumerator = lines.GetEnumerator();
 
-        /// <summary>
-        /// Gets the position at the specified index.
-        /// </summary>
-        /// <param name="indexX">The x-coordinate.</param>
-        /// <param name="indexY">The y-coordinate.</param>
-        /// <returns></returns>
-        public bool this[int indexX, int indexY]
-        {
-            get { return this.grid[indexX, indexY]; }
-        }
-        
-        /// <summary>
-        /// Attempts to move the <see cref="Robot"/> over the surface of <see cref="Mars"/>.
-        /// </summary>
-        /// <param name="currentPosition">The current <see cref="Position"/> of the <see cref="Robot"/></param>
-        /// <param name="newPosition">The new <see cref="Position"/> of the <see cref="Robot"/></param>
-        /// <returns>Feedback relating to the move.</returns>
-        public RobotFeedback Move(Position currentPosition, Position newPosition)
-        {
-            Contract.Requires(currentPosition != null);
-            Contract.Requires(newPosition != null);
-
-            if ((newPosition.X >= 0 && newPosition.X <= this.SizeX) &&
-                (newPosition.Y >= 0 && newPosition.Y <= this.SizeY))
+            while (linesEnumerator.MoveNext())
             {
-                return RobotFeedback.Safe;
+                if (string.IsNullOrWhiteSpace(linesEnumerator.Current))
+                {
+                    continue;
+                }
+
+                // First line - position
+                var splits = linesEnumerator.Current.Split(' ');
+
+                int x = int.Parse(splits[0]);
+                int y = int.Parse(splits[1]);
+                Orientation orientation;
+                Enum.TryParse<Orientation>(splits[2], false, out orientation);
+                var position = new Position(
+                    int.Parse(splits[0]),
+                    int.Parse(splits[1]),
+                    orientation);
+
+                // Move to second line
+                if (!linesEnumerator.MoveNext())
+                {
+                    throw new InvalidOperationException("Expecting a second line!");
+                }
+
+                //Second line
+                var robotInstructions = new List<Instruction>();
+                foreach (var character in linesEnumerator.Current.ToCharArray())
+                {
+                    var instruction = instructions
+                        .First(i => i.Command == char.ToUpperInvariant(character));
+
+                    robotInstructions.Add(instruction);
+                }
+
+                robots.Add(new Robot(robotInstructions, position));
             }
-            else
+
+            return robots;
+        }
+
+
+        public IEnumerable<string> Run()
+        {
+            var robots = GetRobots(inputLines.Skip(1), instructions);
+            var outputLines = new List<string>();
+
+            foreach (var robot in robots)
             {
-                if (this.grid[currentPosition.X - 1, currentPosition.Y - 1])
+                robot.Traverse(this.grid);
+                var positionString = string.Format("{0} {1} {2}",
+                    robot.FinishPosition.X,
+                    robot.FinishPosition.Y,
+                    robot.FinishPosition.Orientation);
+
+                if (robot.Lost)
                 {
-                    return RobotFeedback.Scented;
+                    positionString +=" LOST";
                 }
-                else
-                {
-                    this.grid[currentPosition.X - 1, currentPosition.Y - 1] = true;
-                    return RobotFeedback.Lost;
-                }
+
+                outputLines.Add(positionString);
             }
+
+            return outputLines;
         }
     }
 }
